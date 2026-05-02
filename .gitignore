@@ -1,0 +1,95 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.joblib
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# =========================
+# Data (MUY IMPORTANTE)
+# =========================
+data/
+datasets/
+*.csv
+*.parquet
+*.json
+
+# Si quieres versionar ejemplos pequeños:
+!data/sample/
+
+# =========================
+# Modelos entrenados
+# =========================
+models/
+*.h5
+*.model
+
+# =========================
+# Spark
+# =========================
+spark-warehouse/
+metastore_db/
+*.log
+
+# =========================
+#  Kafka / Zookeeper
+# =========================
+kafka-logs/
+zookeeper/
+*.log
+
+# =========================
+#  Docker
+# =========================
+*.env
+.env.*
+docker-compose.override.yml
+
+# Volúmenes
+volumes/
+tmp/
+
+# =========================
+#  Sistema operativo
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+#  Jupyter / notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+#  Logs generales
+# =========================
+logs/
+*.log
+
+# =========================
+# 🧑‍💻 IDEs
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# 🔐 Secrets / configs
+# =========================
+config.yaml
+config.json
+secrets.json
+
+# =========================
+# 📦 Build / dist
+# =========================
+dist/
+build/
+*.egg-info/
