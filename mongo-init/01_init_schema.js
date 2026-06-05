@@ -1,229 +1,239 @@
 // ================================================================
 // mongo-init/01_init_schema.js
 // Script de inicialización de MongoDB para el TFM de fraude financiero
-// Se ejecuta automáticamente al levantar el contenedor por primera vez
+// Configurado con 6 colecciones: user_profiles, cards, 
+// transactions_raw, transactions_enriched, fraud_alerts, model_metrics.
 // ================================================================
 
-// Seleccionar la base de datos
 db = db.getSiblingDB('fraude_db');
 
+print('Iniciando configuración del esquema de base de datos...');
+
 // ================================================================
-// COLECCIÓN 1: transactions
-// Almacena cada transacción financiera recibida desde Kafka
+// COLECCIÓN 1: user_profiles (Datos estáticos de usuarios)
 // ================================================================
-db.createCollection('transactions', {
+db.createCollection('user_profiles', {
+  validationLevel: 'moderate',
+  validationAction: 'warn', // Gobierno de Datos: Advertir en logs en lugar de rechazar transacción en streaming
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['transaction_id', 'user_id', 'amount', 'timestamp', 'status'],
+      required: ['usuarioID'],
       properties: {
-
-        // ── Identificadores ──────────────────────────
-        transaction_id: {
-          bsonType: 'string',
-          description: 'ID único de la transacción (requerido)'
-        },
-        user_id: {
-          bsonType: 'string',
-          description: 'ID del usuario que realiza la transacción (requerido)'
-        },
-
-        // ── Datos de la transacción ───────────────────
-        amount: {
-          bsonType: 'double',
-          minimum: 0,
-          description: 'Monto de la transacción en USD (requerido, >= 0)'
-        },
-        currency: {
-          bsonType: 'string',
-          enum: ['USD', 'EUR', 'GBP', 'MXN', 'COP', 'BRL'],
-          description: 'Moneda de la transacción'
-        },
-        transaction_type: {
-          bsonType: 'string',
-          enum: ['card_present', 'card_not_present', 'transfer', 'atm', 'online'],
-          description: 'Canal / tipo de transacción'
-        },
-        merchant_category: {
-          bsonType: 'string',
-          description: 'Categoría del comercio (MCC code): ej. grocery, travel, entertainment'
-        },
-        merchant_id: {
-          bsonType: 'string',
-          description: 'ID del comercio donde ocurrió la transacción'
-        },
-
-        // ── Tiempo ────────────────────────────────────
-        timestamp: {
-          bsonType: 'date',
-          description: 'Fecha y hora de la transacción en UTC (requerido)'
-        },
-        hour_of_day: {
-          bsonType: 'int',
-          minimum: 0,
-          maximum: 23,
-          description: 'Hora del día (0-23) — feature para ML'
-        },
-        day_of_week: {
-          bsonType: 'int',
-          minimum: 0,
-          maximum: 6,
-          description: 'Día de la semana (0=lunes, 6=domingo) — feature para ML'
-        },
-
-        // ── Geolocalización ───────────────────────────
-        location: {
-          bsonType: 'object',
-          properties: {
-            country: { bsonType: 'string' },
-            city: { bsonType: 'string' },
-            lat: { bsonType: 'double' },
-            lon: { bsonType: 'double' }
-          }
-        },
-        ip_address: {
-          bsonType: 'string',
-          description: 'IP desde donde se originó la transacción (enmascarada por GDPR)'
-        },
-
-        // ── Features calculadas por PySpark ───────────
-        // Estos campos los enriquece Sebastian en el pipeline de Spark
-        features: {
-          bsonType: 'object',
-          properties: {
-            txn_velocity_1min: {
-              bsonType: 'int',
-              description: 'Nº de transacciones del usuario en el último minuto'
-            },
-            txn_velocity_5min: {
-              bsonType: 'int',
-              description: 'Nº de transacciones del usuario en los últimos 5 minutos'
-            },
-            txn_velocity_1hour: {
-              bsonType: 'int',
-              description: 'Nº de transacciones del usuario en la última hora'
-            },
-            delta_amount: {
-              bsonType: 'double',
-              description: 'Desviación del monto respecto al monto medio histórico del usuario'
-            },
-            amount_zscore: {
-              bsonType: 'double',
-              description: 'Z-score del monto frente al perfil histórico del usuario'
-            },
-            geo_anomaly: {
-              bsonType: 'bool',
-              description: 'True si la ubicación es inusual para este usuario'
-            },
-            time_since_last_txn_sec: {
-              bsonType: 'double',
-              description: 'Segundos desde la última transacción del mismo usuario'
-            }
-          }
-        },
-
-        // ── Resultado del modelo ───────────────────────
-        fraud_score: {
-          bsonType: 'double',
-          minimum: 0.0,
-          maximum: 1.0,
-          description: 'Score de fraude del ensemble (0=legítimo, 1=fraude)'
-        },
-        is_fraud_predicted: {
-          bsonType: 'bool',
-          description: 'Clasificación final del modelo (True = fraude detectado)'
-        },
-        is_fraud_confirmed: {
-          bsonType: ['bool', 'null'],
-          description: 'Etiqueta real confirmada por analista (null = sin revisar)'
-        },
-
-        // ── Estado ────────────────────────────────────
-        status: {
-          bsonType: 'string',
-          enum: ['pending', 'processed', 'flagged', 'blocked', 'confirmed_fraud', 'confirmed_legitimate'],
-          description: 'Estado del procesamiento de la transacción (requerido)'
-        },
-        processing_time_ms: {
-          bsonType: 'double',
-          description: 'Tiempo total de procesamiento en milisegundos (KPI de latencia)'
-        }
+        usuarioID: { bsonType: 'string', description: 'UUID único del usuario' },
+        usuario: { bsonType: 'string' },
+        email: { bsonType: 'string' },
+        fecha_nacimiento: { bsonType: 'string' },
+        usuario_x: { bsonType: 'double' },
+        usuario_y: { bsonType: 'double' },
+        addr1: { bsonType: 'double' },
+        addr2: { bsonType: 'double' },
+        DeviceType: { bsonType: 'string' },
+        DeviceInfo: { bsonType: 'string' },
+        promedio_de_gastos: { bsonType: 'double' },
+        varianza_de_gastos: { bsonType: 'double' },
+        promedio_gastos_por_dia: { bsonType: 'double' },
+        vertexon_customer_number: { bsonType: 'string' }
       }
     }
   }
 });
-
-// Índices para optimizar queries frecuentes
-db.transactions.createIndex({ transaction_id: 1 }, { unique: true });
-db.transactions.createIndex({ user_id: 1, timestamp: -1 });        // historial por usuario
-db.transactions.createIndex({ timestamp: -1 });                      // queries temporales
-db.transactions.createIndex({ is_fraud_predicted: 1, timestamp: -1 }); // alertas de fraude
-db.transactions.createIndex({ status: 1 });                          // filtrado por estado
-db.transactions.createIndex({ fraud_score: -1 });                    // ranking por score
-
-print('Colección transactions creada con índices');
+db.user_profiles.createIndex({ usuarioID: 1 }, { unique: true });
+print('-> Colección user_profiles creada con índice único.');
 
 // ================================================================
-// COLECCIÓN 2: user_profiles
-// Perfil histórico de cada usuario — Rosa la alimenta,
-// Sebastian la consulta para enriquecer transacciones en streaming
+// COLECCIÓN 2: cards (Datos estáticos de tarjetas)
 // ================================================================
-db.createCollection('user_profiles');
-
-db.user_profiles.createIndex({ user_id: 1 }, { unique: true });
-
-// Documento de ejemplo para guiar el schema
-db.user_profiles.insertOne({
-  user_id: 'USR_EXAMPLE_001',
-  created_at: new Date(),
-  updated_at: new Date(),
-
-  // Estadísticas calculadas sobre el historial
-  stats: {
-    total_transactions: 0,
-    avg_amount: 0.0,
-    std_amount: 0.0,
-    max_amount: 0.0,
-    typical_hour_range: [8, 22],        // horas habituales de actividad
-    typical_countries: ['EC', 'US'],    // países habituales
-    typical_merchant_categories: [],
-    fraud_history_count: 0
-  },
-
-  // Ventana deslizante — últimas N transacciones (para LSTM)
-  recent_transactions: [],              // array de los últimos 10 transaction_id
-
-  // Flags de riesgo
-  risk_flags: {
-    account_age_days: 0,
-    has_previous_fraud: false,
-    account_takeover_risk: false
+db.createCollection('cards', {
+  validationLevel: 'moderate',
+  validationAction: 'warn',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['tarjetaID', 'usuarioID'],
+      properties: {
+        tarjetaID: { bsonType: 'string', description: 'ID de la tarjeta' },
+        usuarioID: { bsonType: 'string', description: 'ID del propietario' },
+        card_number_masked: { bsonType: 'string' },
+        fecha_exp_tarjeta: { bsonType: 'string' },
+        cvv: { bsonType: 'string', description: 'Encriptado Fernet o RSA' },
+        card1: { bsonType: 'int' },
+        card4: { bsonType: 'string' },
+        card6: { bsonType: 'string' },
+        ProductCD: { bsonType: 'string' }
+      }
+    }
   }
 });
-
-print('Colección user_profiles creada con índices');
-
-// ================================================================
-// COLECCIÓN 3: fraud_alerts
-// Registro de todas las alertas generadas
-// Para auditoría y reentrenamiento del modelo
-// ================================================================
-db.createCollection('fraud_alerts');
-
-db.fraud_alerts.createIndex({ transaction_id: 1 }, { unique: true });
-db.fraud_alerts.createIndex({ created_at: -1 });
-db.fraud_alerts.createIndex({ reviewed: 1, created_at: -1 });
-
-print('Colección fraud_alerts creada con índices');
+db.cards.createIndex({ tarjetaID: 1 }, { unique: true });
+db.cards.createIndex({ usuarioID: 1 });
+print('-> Colección cards creada con índices.');
 
 // ================================================================
-// COLECCIÓN 4: model_metrics
-// Registro de métricas por versión de modelo (para el Cap. 5 del TFM)
+// COLECCIÓN 3: transactions_raw (Eventos crudos desde Kafka)
 // ================================================================
-db.createCollection('model_metrics');
+db.createCollection('transactions_raw', {
+  validationLevel: 'moderate',
+  validationAction: 'warn',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['transaccionID', 'usuarioID', 'tarjetaID', 'fecha_hora_transaccion', 'TransactionAmt'],
+      properties: {
+        transaccionID: { bsonType: 'string' },
+        usuarioID: { bsonType: 'string' },
+        tarjetaID: { bsonType: 'string' },
+        fecha_hora_transaccion: { bsonType: 'date' },
+        TransactionAmt: { bsonType: 'double' },
+        TransactionDT: { bsonType: ['int', 'long'] },
+        isFraud: { bsonType: 'int', enum: [0, 1] }
+      }
+    }
+  }
+});
+db.transactions_raw.createIndex({ transaccionID: 1 }, { unique: true });
+db.transactions_raw.createIndex({ usuarioID: 1, fecha_hora_transaccion: -1 });
+// TTL Index: Limpieza automática a los 30 días (30 * 24 * 60 * 60 = 2592000 segundos)
+db.transactions_raw.createIndex({ fecha_hora_transaccion: 1 }, { expireAfterSeconds: 2592000 });
+print('-> Colección transactions_raw creada con índice compuesto y TTL de 30 días.');
 
-print('Colección model_metrics creada');
+// ================================================================
+// COLECCIÓN 4: transactions_enriched (Variables + Inferencia desnormalizadas)
+// ================================================================
+db.createCollection('transactions_enriched', {
+  validationLevel: 'moderate',
+  validationAction: 'warn',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['transaccionID', 'usuarioID', 'tarjetaID', 'processed_at', 'fraud_score'],
+      properties: {
+        transaccionID: { bsonType: 'string' },
+        usuarioID: { bsonType: 'string' },
+        tarjetaID: { bsonType: 'string' },
+        
+        // Variables desnormalizadas
+        TransactionAmt: { bsonType: 'double' },
+        TransactionDT: { bsonType: ['int', 'long'] },
+        card1: { bsonType: 'int' },
+        card4: { bsonType: 'string' },
+        card6: { bsonType: 'string' },
+        ProductCD: { bsonType: 'string' },
+        P_emaildomain: { bsonType: 'string' },
+        addr1: { bsonType: 'double' },
+        addr2: { bsonType: 'double' },
+        DeviceType: { bsonType: 'string' },
+        DeviceInfo: { bsonType: 'string' },
+        
+        // Controles C y delta D
+        C1: { bsonType: 'double' },
+        C13: { bsonType: 'double' },
+        C7: { bsonType: 'double' },
+        C14: { bsonType: 'double' },
+        D1: { bsonType: 'double' },
+        
+        // Variables V
+        V314: { bsonType: 'double' },
+        V201: { bsonType: 'double' },
+        V243: { bsonType: 'double' },
+        V257: { bsonType: 'double' },
+        V242: { bsonType: 'double' },
+        V45: { bsonType: 'double' },
+        V246: { bsonType: 'double' },
+        V200: { bsonType: 'double' },
+        V258: { bsonType: 'double' },
+        
+        // Enriquecidos por Spark
+        zscore_amt: { bsonType: 'double' },
+        velocity: { bsonType: 'double' },
+        amt_distance: { bsonType: 'double' },
+        
+        // Predicción e Inferencia
+        fraud_score: { bsonType: 'double' },
+        is_suspicious: { bsonType: 'bool' },
+        model_ready: { bsonType: 'bool' },
+        processed_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+db.transactions_enriched.createIndex({ transaccionID: 1 }, { unique: true });
+// Índice clave de Grafana: Ordenar alertas de fraude por score e historial temporal
+db.transactions_enriched.createIndex({ fraud_score: -1, processed_at: -1 });
+// Índices de análisis y desagregación sin lookup para el dashboard
+db.transactions_enriched.createIndex({ card4: 1, processed_at: -1 });
+db.transactions_enriched.createIndex({ DeviceType: 1, processed_at: -1 });
+db.transactions_enriched.createIndex({ P_emaildomain: 1, processed_at: -1 });
+// TTL Index: Limpieza automática a los 90 días (90 * 24 * 60 * 60 = 7776000 segundos)
+db.transactions_enriched.createIndex({ processed_at: 1 }, { expireAfterSeconds: 7776000 });
+print('-> Colección transactions_enriched creada con índices compuestos y TTL de 90 días.');
 
-print('');
-print('Base de datos fraude_db inicializada correctamente');
-print('Colecciones: transactions, user_profiles, fraud_alerts, model_metrics');
+// ================================================================
+// COLECCIÓN 5: fraud_alerts (Bandeja operativa de sospechas)
+// ================================================================
+db.createCollection('fraud_alerts', {
+  validationLevel: 'moderate',
+  validationAction: 'warn',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['transaccionID', 'alerted_at', 'fraud_score'],
+      properties: {
+        transaccionID: { bsonType: 'string' },
+        usuarioID: { bsonType: 'string' },
+        tarjetaID: { bsonType: 'string' },
+        TransactionAmt: { bsonType: 'double' },
+        fraud_score: { bsonType: 'double' },
+        zscore_amt: { bsonType: 'double' },
+        velocity: { bsonType: 'double' },
+        isFraud_label: { bsonType: 'int', enum: [0, 1] },
+        alerted_at: { bsonType: 'date' },
+        status: { bsonType: 'string', enum: ['flagged', 'blocked', 'confirmed_fraud', 'dismissed'] },
+        reviewed_by: { bsonType: ['string', 'null'] },
+        reviewed_at: { bsonType: ['date', 'null'] }
+      }
+    }
+  }
+});
+db.fraud_alerts.createIndex({ transaccionID: 1 }, { unique: true });
+db.fraud_alerts.createIndex({ alerted_at: -1 });
+db.fraud_alerts.createIndex({ fraud_score: -1 });
+// TTL Index: Limpieza automática a los 90 días (90 * 24 * 60 * 60 = 7776000 segundos)
+db.fraud_alerts.createIndex({ alerted_at: 1 }, { expireAfterSeconds: 7776000 });
+print('-> Colección fraud_alerts creada con TTL de 90 días.');
+
+// ================================================================
+// COLECCIÓN 6: model_metrics (Auditoría de IA y desempeño Batch)
+// ================================================================
+db.createCollection('model_metrics', {
+  validationLevel: 'moderate',
+  validationAction: 'warn',
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['evaluated_at', 'model_version'],
+      properties: {
+        evaluated_at: { bsonType: 'date' },
+        samples_evaluated: { bsonType: 'int' },
+        threshold: { bsonType: 'double' },
+        auc_roc: { bsonType: 'double' },
+        f1_score: { bsonType: 'double' },
+        recall: { bsonType: 'double' },
+        precision: { bsonType: 'double' },
+        true_positives: { bsonType: 'int' },
+        false_positives: { bsonType: 'int' },
+        true_negatives: { bsonType: 'int' },
+        false_negatives: { bsonType: 'int' },
+        model_version: { bsonType: 'string' },
+        contamination_rate: { bsonType: 'double' }
+      }
+    }
+  }
+});
+db.model_metrics.createIndex({ evaluated_at: -1 });
+print('-> Colección model_metrics creada.');
+
+print('================================================================');
+print('Base de datos fraude_db inicializada con el nuevo diseño Top 25.');
+print('Colecciones disponibles: user_profiles, cards, transactions_raw, transactions_enriched, fraud_alerts, model_metrics.');
+print('================================================================');
