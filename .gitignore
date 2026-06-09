@@ -93,3 +93,8 @@ secrets.json
 dist/
 build/
 *.egg-info/
+
+#=========================
+# 📦 Antigravity/doc
+# =========================
+doc/
