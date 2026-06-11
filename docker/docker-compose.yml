@@ -41,7 +41,13 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       KAFKA_LOG_RETENTION_HOURS: 168
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -120,8 +126,8 @@ services:
       /opt/spark/bin/spark-class
       org.apache.spark.deploy.master.Master
     ports:
-      - "4040:8080"   # Spark Web UI
-      - "7077:7077"   # Spark Master port
+      - "4040:8080" # Spark Web UI
+      - "7077:7077" # Spark Master port
     volumes:
       - ../spark:/opt/spark_app
       - ../models:/opt/spark_models
@@ -161,7 +167,7 @@ services:
     environment:
       - KAFKA_BROKER=kafka:29092
       - MONGO_URI=mongodb://admin:tfm2026@mongodb:27017/fraude_db?authSource=admin
-      - MONGO_ENABLED=false
+      - MONGO_ENABLED=true
       - SPARK_MASTER=spark://spark-master:7077
       - WARMUP_SIZE=500
       - FRAUD_THRESHOLD=0.5

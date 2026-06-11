@@ -1,7 +1,5 @@
 """
 schemas/transaction_schema.py
-Schema de los mensajes JSON del topic transactions.raw.
-Debe ser idéntico a los campos que publica el producer.
 """
 from pyspark.sql.types import (
     StructType, StructField,

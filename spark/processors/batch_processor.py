@@ -20,6 +20,8 @@ from services.warmup_orchestrator      import WarmupOrchestrator
 from services.retraining_orchestrator  import RetrainingOrchestrator
 from utils.helpers import ahora_iso
 from utils.logger  import get_logger
+from datetime import datetime
+
 
 logger = get_logger("BatchProcessor")
 
@@ -101,32 +103,46 @@ class BatchProcessor:
                 self._build_alert(tx, features_eng, fraud_score)
             )
 
-    def _build_enriched(
-        self,
-        tx:          dict,
-        features_eng: dict,
-        fraud_score:  float,
-        epoch_id:     int,
-    ) -> dict:
+    def _build_enriched(self, tx, features_eng, fraud_score, epoch_id) -> dict:
         return {
-            **tx,
-            **features_eng,
+            # Identificadores
+            "transaccionID":  tx.get("transaccionID"),
+            "usuarioID":      tx.get("usuarioID"),
+            "tarjetaID":      tx.get("tarjetaID"),
+            # Variables numéricas
+            "TransactionAmt": tx.get("TransactionAmt"),
+            "TransactionDT":  tx.get("TransactionDT"),
+            "card1":  tx.get("card1"),
+            "card4":  tx.get("card4"),
+            "card6":  tx.get("card6"),
+            "ProductCD":      tx.get("ProductCD"),
+            "P_emaildomain":  tx.get("P_emaildomain"),
+            "addr1":  tx.get("addr1"),
+            "addr2":  tx.get("addr2"),
+            "DeviceType":     tx.get("DeviceType"),
+            "DeviceInfo":     tx.get("DeviceInfo"),
+            "C1":   tx.get("C1"),   "C13": tx.get("C13"),
+            "C7":   tx.get("C7"),   "C14": tx.get("C14"),
+            "D1":   tx.get("D1"),
+            "V314": tx.get("V314"), "V201": tx.get("V201"),
+            "V243": tx.get("V243"), "V257": tx.get("V257"),
+            "V242": tx.get("V242"), "V45":  tx.get("V45"),
+            "V246": tx.get("V246"), "V200": tx.get("V200"),
+            "V258": tx.get("V258"),
+            # Features engineered
+            "zscore_amt":   features_eng.get("zscore_amt"),
+            "velocity":     features_eng.get("velocity"),
+            "amt_distance": features_eng.get("amt_distance"),
+            # Inferencia
             "fraud_score":   round(fraud_score, 4) if fraud_score >= 0 else None,
-            "is_suspicious": (
-                self._evaluator.is_suspicious(fraud_score)
-                if fraud_score >= 0 else False
-            ),
+            "is_suspicious": self._evaluator.is_suspicious(fraud_score) if fraud_score >= 0 else False,
             "is_warmed_up":  self._registry.is_warmed_up,
-            "processed_at":  ahora_iso(),
-            "epoch_id":      epoch_id,
-        }
+            "model_ready":   self._registry.is_warmed_up,   # ← mantener por compatibilidad
+            "processed_at":  datetime.utcnow(),
+            "isFraud":       tx.get("isFraud"),              # ← label del producer
+    }
 
-    def _build_alert(
-        self,
-        tx:           dict,
-        features_eng: dict,
-        fraud_score:  float,
-    ) -> dict:
+    def _build_alert(self, tx, features_eng, fraud_score) -> dict:
         return {
             "transaccionID":  tx.get("transaccionID"),
             "usuarioID":      tx.get("usuarioID"),
@@ -136,8 +152,12 @@ class BatchProcessor:
             "zscore_amt":     features_eng.get("zscore_amt"),
             "velocity":       features_eng.get("velocity"),
             "isFraud_label":  tx.get("isFraud"),
-            "alerted_at":     ahora_iso(),
-        }
+            "alerted_at":     datetime.utcnow(),   # ← date object
+            # Campos de gestión operativa (schema fraud_alerts)
+            "status":         "flagged",           # ← estado inicial siempre flagged
+            "reviewed_by":    None,
+            "reviewed_at":    None,
+    }
     
     def _log_batch(
         self,

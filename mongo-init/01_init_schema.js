@@ -152,7 +152,11 @@ db.createCollection('transactions_enriched', {
         fraud_score: { bsonType: 'double' },
         is_suspicious: { bsonType: 'bool' },
         model_ready: { bsonType: 'bool' },
-        processed_at: { bsonType: 'date' }
+        processed_at: { bsonType: 'date' },
+        
+        // Evaluación del modelo
+        isFraud:      { bsonType: 'int', enum: [0, 1] },
+        is_warmed_up: { bsonType: 'bool' }
       }
     }
   }
