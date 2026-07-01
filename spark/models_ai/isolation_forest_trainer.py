@@ -18,9 +18,9 @@ class IsolationForestTrainer(ModelTrainer):
 
     def __init__(
         self,
-        n_estimators:  int   = 100,
+        n_estimators:  int   = 300,
         contamination: float = CONTAMINATION,
-        max_samples:   str   = "auto",
+        max_samples:   str   = 1024,
         random_state:  int   = 42,
         n_jobs:        int   = -1,
     ) -> None:
