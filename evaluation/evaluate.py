@@ -34,7 +34,7 @@ class EvaluationConfig:
     mongo_db:      str   = "fraude_db"
     collection:    str   = "transactions_enriched"  # transactions_enriched
     col_metrics:   str   = "model_metrics"           # donde se guardan los resultados
-    threshold:     float = 0.5
+    threshold:     float = 0.4
     min_samples:   int   = 100
     model_version: str   = "IsolationForest_Top25_v1.0"
     contamination: float = 0.035

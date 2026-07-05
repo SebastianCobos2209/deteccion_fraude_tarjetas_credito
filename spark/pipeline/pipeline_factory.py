@@ -42,6 +42,8 @@ from infrastructure.spark_session_factory     import SparkSessionFactory
 from processors.batch_processor  import BatchProcessor
 from pipeline.streaming_pipeline import StreamingPipeline
 
+from infrastructure.mongo_user_profile_repository import MongoUserProfileRepository
+from infrastructure.null_user_profile_repository import NullUserProfileRepository
 from utils.logger import get_logger
 
 logger = get_logger("PipelineFactory")
@@ -63,7 +65,7 @@ class PipelineFactory:
         # ── 1. Implementaciones base del modelo ───────────
         trainer     = IsolationForestTrainer(
             contamination = CONTAMINATION,
-            n_estimators  = 100,
+            n_estimators  = 300,
         )
         persistence = JobLibModelPersistence()
         normalizer  = SigmoidScoreNormalizer(k=5.0)
@@ -106,6 +108,12 @@ class PipelineFactory:
             else NullDocumentRepository()
         )
 
+        user_repository = (
+            MongoUserProfileRepository()
+            if MONGO_ENABLED
+            else NullUserProfileRepository()
+        )
+
         logger.info(
             f"DocumentRepository → "
             f"{'MongoDocumentRepository' if MONGO_ENABLED else 'NullDocumentRepository'}"
@@ -119,6 +127,7 @@ class PipelineFactory:
             evaluator  = evaluator,
             publisher  = publisher,
             repository = repository,
+            user_repository = user_repository,
         )
 
         # ── 8. SparkSession ───────────────────────────────

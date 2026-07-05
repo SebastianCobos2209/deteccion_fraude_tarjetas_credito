@@ -50,5 +50,31 @@ FEATURE_COLS = [
     "V201", "V243", "V257", "C7", "V242",
     "V45", "V246", "V200", "V258", "C14",
 ]
+CATEGORICAL_FRAUD_RATES = {
+    "ProductCD": {
+        "W": 0.031, "C": 0.028, "R": 0.044, "H": 0.038, "S": 0.052,
+    },
+    "card4": {
+        "visa": 0.033, "mastercard": 0.038,
+        "american express": 0.021, "discover": 0.029,
+    },
+    "card6": {
+        "debit": 0.030, "credit": 0.042, "debit or credit": 0.035,
+    },
+    "P_emaildomain": {
+        "gmail.com": 0.030, "yahoo.com": 0.041,
+        "hotmail.com": 0.036, "anonymous.com": 0.089, "aol.com": 0.039,
+    },
+    "DeviceType": {
+        "desktop": 0.031, "mobile": 0.058,
+    },
+    "DeviceInfo": {
+        "Windows": 0.029, "iOS Device": 0.048, "MacOS": 0.033,
+        "Trident/7.0": 0.071, "rv:11.0": 0.065,
+    },
+}
+CATEGORICAL_DEFAULT_RATE = 0.035
+N_FEATURES = len(FEATURE_COLS) + len(CATEGORICAL_FRAUD_RATES)
+
 AMT_MEAN = 135.027
 AMT_STD  = 239.163

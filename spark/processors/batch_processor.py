@@ -13,6 +13,7 @@ from pyspark.sql import DataFrame
 from config.settings import COL_RAW, COL_ENRICHED, COL_ALERTS, WARMUP_SIZE
 from infrastructure.contracts.alert_publisher     import AlertPublisher
 from infrastructure.contracts.document_repository import DocumentRepository
+from infrastructure.contracts.user_profile_repository import UserProfileRepository
 from models_ai.model_registry                     import ModelRegistry
 from services.alert_evaluator                     import AlertEvaluator
 from services.feature_engineering                 import (
@@ -40,6 +41,7 @@ class BatchProcessor:
         evaluator:    AlertEvaluator,
         publisher:    AlertPublisher,
         repository:   DocumentRepository,
+        user_repository:  UserProfileRepository,
     ) -> None:
         self._registry   = registry
         self._warmup     = warmup
@@ -47,6 +49,7 @@ class BatchProcessor:
         self._evaluator  = evaluator
         self._publisher  = publisher
         self._repository = repository
+        self._user_repository = user_repository
 
     # ── Punto de entrada público ──────────────────────────
 
@@ -92,10 +95,13 @@ class BatchProcessor:
         enriched: List[dict],
         alertas:  List[dict],
     ) -> None:
+        user_profile = self._user_repository.find_by_id(
+            tx.get("usuarioID", "")
+        )
         """Ejecuta los pasos 3a-3f para una transacción."""
 
         # 3a. Feature engineering
-        features     = extraer_features(tx)
+        features     = extraer_features(tx, user_profile)
         features_eng = calcular_features_engineered(tx)
 
         # 3b. Notificar warm-up
