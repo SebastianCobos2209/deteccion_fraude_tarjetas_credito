@@ -200,10 +200,34 @@ services:
     networks:
       - fraud_net
 
+  # ─────────────────────────────────────────
+  # GRAFANA — visualización del dashboard en tiempo real
+  # Acceder: http://localhost:3000 (Credenciales: admin/admin)
+  # ─────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=https://github.com/haohanyang/mongodb-datasource/releases/download/v0.3.2/haohanyang-mongodb-datasource-0.3.2.zip;haohanyang-mongodb-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=haohanyang-mongodb-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - fraud_net
+
 networks:
   fraud_net:
     driver: bridge
 
 volumes:
   mongodb_data:
+    driver: local
+  grafana_data:
     driver: local

@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: MongoDB
+    type: haohanyang-mongodb-datasource
+    access: proxy
+    isDefault: true
+    jsonData:
+      connectionStringScheme: "standard"
+      host: "mongodb"
+      port: 27017
+      database: "fraude_db"
+      authType: "auth-username-password"
+      authDb: "admin"
+      username: "admin"
+    secureJsonData:
+      password: "tfm2026"
