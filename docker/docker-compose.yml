@@ -176,18 +176,19 @@ services:
     volumes:
       - ../spark:/opt/spark_app
       - ../models:/opt/spark_models
-    command: >
-      bash -c "
-        pip install scikit-learn==1.3.2 joblib==1.3.2 pymongo==4.6.0 numpy==1.24.4 --quiet &&
-        /opt/spark/bin/spark-submit \
-          --master spark://spark-master:7077 \
-          --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 \
-          --conf spark.mongodb.write.connection.uri=mongodb://admin:tfm2026@mongodb:27017/fraude_db?authSource=admin \
-          --conf spark.mongodb.read.connection.uri=mongodb://admin:tfm2026@mongodb:27017/fraude_db?authSource=admin \
-          --conf spark.driver.extraJavaOptions=-Dlog4j.logLevel=WARN \
-          --conf spark.driver.extraClassPath=/opt/spark_app \
-          /opt/spark_app/main.py
-      "
+    command:
+    - bash
+    - -c
+    - |
+      pip install scikit-learn==1.3.2 joblib==1.3.2 pymongo==4.6.0 numpy==1.24.4 --quiet &&
+      /opt/spark/bin/spark-submit \
+        --master spark://spark-master:7077 \
+        --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1,org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 \
+        --conf spark.mongodb.write.connection.uri=mongodb://admin:tfm2026@mongodb:27017/fraude_db?authSource=admin \
+        --conf spark.mongodb.read.connection.uri=mongodb://admin:tfm2026@mongodb:27017/fraude_db?authSource=admin \
+        --conf spark.driver.extraJavaOptions=-Dlog4j.logLevel=WARN \
+        --conf spark.driver.extraClassPath=/opt/spark_app \
+        /opt/spark_app/main.py
     depends_on:
       spark-master:
         condition: service_started
@@ -201,10 +202,34 @@ services:
     networks:
       - fraud_net
 
+  # ─────────────────────────────────────────
+  # GRAFANA — visualización del dashboard en tiempo real
+  # Acceder: http://localhost:3000 (Credenciales: admin/admin)
+  # ─────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=https://github.com/haohanyang/mongodb-datasource/releases/download/v0.3.2/haohanyang-mongodb-datasource-0.3.2.zip;haohanyang-mongodb-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=haohanyang-mongodb-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - fraud_net
+
 networks:
   fraud_net:
     driver: bridge
 
 volumes:
   mongodb_data:
+    driver: local
+  grafana_data:
     driver: local
