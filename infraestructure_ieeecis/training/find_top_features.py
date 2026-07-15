@@ -29,7 +29,7 @@ from sklearn.preprocessing import LabelEncoder
 
 def find_top_features():
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    cleaned_path = os.path.join(current_dir, '..', '..', 'data', 'ieee', 'train_cleaned.csv')
+    cleaned_path = os.path.join(current_dir, '..', 'data_insight', 'data_ieee', 'train_cleaned.csv')
     
     print(f"Cargando {cleaned_path}...")
     df = pd.read_csv(cleaned_path)

@@ -35,7 +35,7 @@ class CorrelatedNumericGenerator:
             Dict con una muestra por variable, redondeada según
             la naturaleza de cada variable (float3, int, float2)
         """
-        z_corr = self._params.cholesky @ np.random._normal(
+        z_corr = self._params.cholesky @ np.random.standard_normal(
             len(self._params.numeric_vars)
         )
 

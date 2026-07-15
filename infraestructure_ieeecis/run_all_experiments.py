@@ -15,7 +15,7 @@ Este script ejecuta secuencialmente todos los pasos del analisis batch offline:
 5. Ejecuta la extraccion de parametros para PaySim (`extract_paysim_params.py`).
 
 Toda la salida de la consola se captura y se compila ordenadamente en el documento
-`doc/Reporte_Resultados_Entrenamientos.md` para la sustentacion de la tesis.
+`infraestructure_ieeecis/data_insight/resultados_ieee/Reporte_Resultados_Entrenamientos.md` para la sustentacion de la tesis.
 
 ORDEN DE EJECUCION:
 - Se puede ejecutar en cualquier momento para reproducir todos los experimentos 
@@ -60,8 +60,7 @@ def run_command_and_capture(cmd_list, title):
 def main():
     # Rutas base dinamicas
     infra_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.abspath(os.path.join(infra_dir, ".."))
-    report_path = os.path.join(base_dir, "doc", "Reporte_Resultados_Entrenamientos.md")
+    report_path = os.path.join(infra_dir, "data_insight", "resultados_ieee", "Reporte_Resultados_Entrenamientos.md")
     
     # Asegurar que el directorio de documentacion existe
     os.makedirs(os.path.dirname(report_path), exist_ok=True)
@@ -71,10 +70,17 @@ def main():
         f.write(f"**Fecha de generación:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         f.write("Este documento contiene el registro íntegro de la ejecución del EDA, los distintos modelos de Isolation Forest y la extracción de parámetros. Los resultados aquí mostrados sustentan las decisiones tomadas para la segunda entrega del TFM.\n\n---\n\n")
 
+    # Intentar usar el python del entorno Conda TFM para nbconvert para evitar conflictos de NumPy
+    tfm_python = r"C:\Users\Jeaneth\anaconda3\envs\TFM\python.exe"
+    if os.path.exists(tfm_python):
+        jupyter_cmd = [tfm_python, "-m", "nbconvert"]
+    else:
+        jupyter_cmd = ["jupyter", "nbconvert"]
+
     steps = [
         {
             "title": "1. Análisis Exploratorio de Datos (EDA) y Limpieza",
-            "cmd": ["jupyter", "nbconvert", "--execute", "--inplace", os.path.join(infra_dir, "notebooks", "eda_ieeecis.ipynb")]
+            "cmd": jupyter_cmd + ["--execute", "--inplace", os.path.join(infra_dir, "notebooks", "eda_ieeecis.ipynb")]
         },
         {
             "title": "2. Modelo Base Isolation Forest (Todas las Variables)",

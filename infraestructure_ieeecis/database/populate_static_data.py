@@ -36,7 +36,7 @@ def populate_static_data():
 
     # 1. Establecer rutas
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    cleaned_path = os.path.join(current_dir, '..', '..', 'data', 'ieee', 'train_cleaned.csv')
+    cleaned_path = os.path.join(current_dir, '..', 'data_insight', 'data_ieee', 'train_cleaned.csv')
 
     if not os.path.exists(cleaned_path):
         print(f"[Error] No se encontró el dataset limpio en: {cleaned_path}")

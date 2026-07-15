@@ -49,7 +49,7 @@ def load_data():
     # Obtenemos la ruta absoluta basada en la ubicación de este script
     # para evitar problemas dependiendo de desde dónde se ejecute
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    cleaned_path = os.path.join(current_dir, '..', '..', 'data', 'ieee', 'train_cleaned.csv')
+    cleaned_path = os.path.join(current_dir, '..', 'data_insight', 'data_ieee', 'train_cleaned.csv')
     
     if os.path.exists(cleaned_path):
         df = pd.read_csv(cleaned_path)
