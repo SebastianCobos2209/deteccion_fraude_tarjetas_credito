@@ -16,9 +16,9 @@ consistencia en las rutas de entrada/salida.
 import os
 
 # RUTAS BASE
-BASE_DIR   = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-DATA_DIR   = os.path.join(BASE_DIR, "data", "ieee")
-MODELS_DIR = os.path.join(BASE_DIR, "models")
+INFRA_DIR  = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR   = os.path.join(INFRA_DIR, "data_insight", "data_ieee")
+MODELS_DIR = os.path.abspath(os.path.join(INFRA_DIR, "..", "models"))
 
 # ARCHIVOS DE ENTRADA
 TRANSACTION_FILE = os.path.join(DATA_DIR, "train_transaction.csv")

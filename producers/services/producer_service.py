@@ -110,13 +110,13 @@ class ProducerService:
         tasa      = self._params.contamination_rate * 100
         sep       = "=" * 60
         print(f"\n{sep}")
-        print(f"  Vertexon → Kafka Producer  (IEEE-CIS v2 — {n_numeric} variables)")
+        print(f"  Vertexon -> Kafka Producer  (IEEE-CIS v2 - {n_numeric} variables)")
         print(f"{sep}")
         print(f"  Kafka          : {self._config.kafka_broker}")
         print(f"  Variables num. : {n_numeric}")
         print(f"  Variables cat. : 6  (ProductCD, card4, card6, email, device)")
         print(f"  Contaminación  : {tasa:.2f}%  (IEEE-CIS real)")
-        print(f"  Correlaciones  : Cholesky 19×19 activo")
+        print(f"  Correlaciones  : Cholesky 19x19 activo")
         print(f"  Intervalo      : {self._config.intervalo}s  "
               f"| {self._config.variacion} usuarios/ciclo")
         print(f"{sep}")

@@ -34,8 +34,8 @@ def extract_parameters():
 
     # 1. Definir rutas
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(current_dir, '..', '..', 'data', 'ieee', 'train_cleaned.csv')
-    output_dir = os.path.join(current_dir, '..', '..', 'data', 'paysim_params')
+    data_path = os.path.join(current_dir, '..', 'data_insight', 'data_ieee', 'train_cleaned.csv')
+    output_dir = os.path.join(current_dir, '..', 'data_insight', 'paysim_params')
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -114,7 +114,7 @@ def extract_parameters():
     print(f"  -> Matriz de correlación guardada en: {corr_path}")
 
     print("\n¡Extracción completada con éxito!")
-    print("Tu compañero puede utilizar los archivos en la carpeta 'data/paysim_params' para configurar PaySim.")
+    print("Tu compañero puede utilizar los archivos en la carpeta 'infraestructure_ieeecis/data_insight/paysim_params' para configurar PaySim.")
 
 if __name__ == "__main__":
     extract_parameters()
